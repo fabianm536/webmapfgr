@@ -3,27 +3,26 @@ dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ValidationTextBox");
 dojo.require("dijit.form.DateTextBox");
 //map1
-var map, toc;
+var map;
 var graphicsArray = [];
 
 require([
   "dojo/dom",
   "dojo/parser",
   "esri/map",
-  "esri/layers/FeatureLayer",
-  "esri/layers/ArcGISTiledMapServiceLayer",
-  "esri/layers/ArcGISDynamicMapServiceLayer",
+  "esri/SpatialReference",
+  "esri/dijit/BasemapGallery",
+  "esri/dijit/Search",
   "esri/geometry",
   "esri/dijit/Scalebar",
-  "esri/dijit/Search",
-  "esri/dijit/BasemapGallery",
   "esri/arcgis/utils",
   "esri/geometry/Point",
   "esri/geometry/Polygon",
   "esri/symbols/SimpleMarkerSymbol",
   "esri/symbols/SimpleFillSymbol",
   "esri/symbols/SimpleLineSymbol",
-  "esri/SpatialReference",
+  "esri/Color",
+  "esri/InfoTemplate",
   "esri/graphic",
   "dijit/layout/BorderContainer",
   "dijit/layout/ContentPane",
@@ -33,23 +32,19 @@ require([
   dom,
   parser,
   Map,
-  FeatureLayer, 
-  ArcGISTiledMapServiceLayer,
-  ArcGISDynamicMapServiceLayer,
+  SpatialReference,
+  BasemapGallery,
+  Search,
   Geometry,
   Scalebar,
-  Search,
-  BasemapGallery,
   arcgisUtils,
   Point,
   Polygon,
   SimpleMarkerSymbol,
   SimpleFillSymbol,
   SimpleLineSymbol,
-  ClassBreaksRenderer,
   Color,
   InfoTemplate,
-  SpatialReference,
   Graphic
   ) {
    
@@ -131,7 +126,7 @@ require([
     });
 
     //extent calcul2
-    dojo.connect(map3, "onExtentChange", showExtent2);
+  dojo.connect(map3, "onExtentChange", showExtent2);
 
     //search
     var search = new Search({
@@ -149,8 +144,8 @@ require([
            + extent.xmin.toFixed(2) + "," + extent.ymax.toFixed(2) + "], ["
            + extent.xmax.toFixed(2) + "," + extent.ymax.toFixed(2) + "], ["
            + extent.xmax.toFixed(2) + "," + extent.ymin.toFixed(2) + "]]], \"spatialReference\": { \"wkid\": 102100 }}";
-
-        addPolygon(s);
+        
+       addPolygon(s);
     }
 
     function showExtent2(extent) {
@@ -161,8 +156,7 @@ require([
 
         addPolygon2(s);
     }
-
-    function addPolygon(extentStr) {
+  function addPolygon(extentStr) {
 
         if (map.graphics != null) {
             map.graphics.clear();
@@ -180,8 +174,7 @@ require([
         }
         map.setExtent(myPolygon.getExtent().expand(6));
     }
-
-    function addPolygon2(extentStr) {
+  function addPolygon2(extentStr) {
 
         if (map2.graphics != null) {
             map2.graphics.clear();
@@ -189,9 +182,12 @@ require([
 
         var polygonJson = JSON.parse(extentStr);
         var myPolygon = new Polygon(polygonJson);
+        
         var fill = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID,
             new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID,
             new esri.Color([255, 0, 0]), 2), new esri.Color([255, 255, 0, 0]));
+
+
         var gra = new Graphic(myPolygon, fill);
 
         if (map2.graphics != null) {
@@ -201,17 +197,17 @@ require([
         map2.setExtent(myPolygon.getExtent().expand(6));
     }
 
-   
     function addPoint(x, y, wkid) {
 
         var sys = { wkid: 4326 };
         sys.wkid = parseInt(wkid);
+       
         
-        var rs = new SpatialReference(sys);
-        var point = new Point(x, y, rs);
+        var point = new Point(x, y, new SpatialReference(sys));
+        
         var pointSymbol = new SimpleMarkerSymbol();
         var pointAttributes = { city: "Albuquerque", state: "New Mexico" };
-        //var pointInfoTemplate = new InfoTemplate("Albuquerque");
+        var pointInfoTemplate = new InfoTemplate("Albuquerque");
         var pointGraphic = new Graphic(point, pointSymbol, pointAttributes);
         graphicsArray.push(pointGraphic);
         for (i = 0; i < graphicsArray.length; ++i) {
@@ -229,6 +225,7 @@ require([
             if (myForm.isValid()) {
                 coord = JSON.parse(dojo.toJson(myForm.attr("value")));
                 //add point from coord
+               
                 map3.on("load", addPoint(coord.coordx, coord.coordy, coord.wkid));
 
             }
